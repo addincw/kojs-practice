@@ -6,12 +6,17 @@
     <title>Knockout JS Practice</title>
   </head>
   <body>
-    <h1>Hello <span data-bind="text: name"></span></h1>
+    <h1>Welcome, help us to know yo better</h1>
+
+    <p>What's your name?</p>
+    <input type="text" name="name" data-bind="value: name" />
+
+    <h3>Hello <span data-bind="text: name"></span></h3>
 
     <script src="/assets/knockout-3.5.1.js"></script>
     <script type="text/javascript">
       function AppViewModel() {
-        this.name = "Addin";
+        this.name = ko.observable("");
       }
 
       ko.applyBindings(new AppViewModel());
