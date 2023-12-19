@@ -8,6 +8,10 @@
   <body>
     <h1>Your Seat Reservations</h1>
 
+    <button data-bind="click: reserveRandomSeat" style="margin-bottom: 16px">
+      Reserve Random Seat
+    </button>
+
     <table border="1">
       <thead>
         <tr>
@@ -44,7 +48,14 @@
           { name: "Ultimate (whole zebra)", price: 290 },
         ];
 
-        self.seats = ko.observableArray([new Seat("Addin", self.meals[1])]);
+        self.seats = ko.observableArray([]);
+
+        self.reserveRandomSeat = function () {
+          const randomName = (Math.random() + 1).toString(36).substring(7);
+          const randomMealIdx = Math.floor(Math.random() * 3);
+
+          self.seats.push(new Seat(randomName, self.meals[randomMealIdx]));
+        };
       }
 
       ko.applyBindings(new ReservationViewModel());
