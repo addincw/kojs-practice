@@ -9,14 +9,30 @@
     <h1>Welcome, help us to know yo better</h1>
 
     <p>What's your name?</p>
-    <input type="text" name="name" data-bind="value: name" />
+    <input
+      type="text"
+      name="firstname"
+      data-bind="value: firstname"
+      placeholder="firstname"
+    />
+    <input
+      type="text"
+      name="lastname"
+      data-bind="value: lastname"
+      placeholder="lastname"
+    />
 
-    <h3>Hello <span data-bind="text: name"></span></h3>
+    <h3>Hello <span data-bind="text: fullname"></span></h3>
 
     <script src="/assets/knockout-3.5.1.js"></script>
     <script type="text/javascript">
       function AppViewModel() {
-        this.name = ko.observable("");
+        this.firstname = ko.observable("");
+        this.lastname = ko.observable("");
+
+        this.fullname = ko.computed(function () {
+          return this.firstname() + " " + this.lastname();
+        }, this);
       }
 
       ko.applyBindings(new AppViewModel());
