@@ -9,18 +9,35 @@
     <h1>Welcome, help us to know yo better</h1>
 
     <p>What's your name?</p>
-    <input
-      type="text"
-      name="firstname"
-      data-bind="value: firstname"
-      placeholder="firstname"
-    />
-    <input
-      type="text"
-      name="lastname"
-      data-bind="value: lastname"
-      placeholder="lastname"
-    />
+    <div style="display: flex">
+      <div style="margin-right: 5px">
+        <input
+          type="text"
+          name="firstname"
+          data-bind="value: firstname"
+          placeholder="firstname"
+        />
+        <p
+          style="
+            margin: 4px 0 0;
+            color: blue;
+            text-decoration: underline;
+            cursor: pointer;
+          "
+          data-bind="click: setFirstnameCapitalize"
+        >
+          capitalize
+        </p>
+      </div>
+      <div>
+        <input
+          type="text"
+          name="lastname"
+          data-bind="value: lastname"
+          placeholder="lastname"
+        />
+      </div>
+    </div>
 
     <h3>Hello <span data-bind="text: fullname"></span></h3>
 
@@ -33,6 +50,14 @@
         this.fullname = ko.computed(function () {
           return this.firstname() + " " + this.lastname();
         }, this);
+
+        this.setFirstnameCapitalize = function () {
+          const currentFirstname = this.firstname();
+
+          if (!currentFirstname) return;
+
+          this.firstname(currentFirstname.toUpperCase());
+        };
       }
 
       ko.applyBindings(new AppViewModel());
