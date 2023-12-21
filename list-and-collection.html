@@ -26,6 +26,7 @@
           <th>Passenger Name</th>
           <th>Meal</th>
           <th>Surcharge</th>
+          <th></th>
         </tr>
       </thead>
       <tbody data-bind="foreach: seats">
@@ -45,12 +46,18 @@
             ></select>
           </td>
           <td data-bind="text: mealPriceFormatted"></td>
+          <td>
+            <button title="cancel seat" data-bind="click: $root.cancelSeat">
+              x
+            </button>
+          </td>
         </tr>
       </tbody>
       <tfoot data-bind="visible: totalSurcharge() !== '$0'">
         <tr>
           <td colspan="2"><b>Total Surcharge</b></td>
           <td data-bind="text: totalSurcharge"></td>
+          <td></td>
         </tr>
       </tfoot>
     </table>
@@ -95,6 +102,12 @@
 
         self.reserveSeat = function () {
           self.seats.push(new Seat("", self.meals[0]));
+        };
+
+        self.cancelSeat = function (seat) {
+          if (self.seats().length === 1) return;
+
+          self.seats.remove(seat);
         };
       }
 
