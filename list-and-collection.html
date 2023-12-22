@@ -18,7 +18,12 @@
     </style>
   </head>
   <body>
-    <h1>Your Seat Reservations</h1>
+    <h1>
+      Your Seat Reservations
+      <span
+        data-bind="text: `(${seats().length})`, visible: seats().length > 0"
+      ></span>
+    </h1>
 
     <table border="1">
       <thead>
@@ -47,7 +52,10 @@
           </td>
           <td data-bind="text: mealPriceFormatted"></td>
           <td>
-            <button title="cancel seat" data-bind="click: $root.cancelSeat">
+            <button
+              title="cancel seat"
+              data-bind="click: $root.cancelSeat, enable: $root.seats().length > 1"
+            >
               x
             </button>
           </td>
@@ -62,7 +70,10 @@
       </tfoot>
     </table>
 
-    <button data-bind="click: reserveSeat" style="margin-top: 16px">
+    <button
+      data-bind="click: reserveSeat, enable: seats().length < 5"
+      style="margin-top: 16px"
+    >
       Reserve Seat
     </button>
 
