@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>List and Collection | Knockout JS Practice</title>
+
+    <style>
+      table thead tr th {
+        text-align: left;
+      }
+
+      table thead tr th,
+      table tbody tr td,
+      table tfoot tr td {
+        padding: 5px 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>
+      Your Seat Reservations
+      <span
+        data-bind="text: `(${seats().length})`, visible: seats().length > 0"
+      ></span>
+    </h1>
+
+    <table border="1">
+      <thead>
+        <tr>
+          <th>Passenger Name</th>
+          <th>Meal</th>
+          <th>Surcharge</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody data-bind="foreach: seats">
+        <tr>
+          <td>
+            <input
+              type="text"
+              name="passanger_name"
+              placeholder="Passanger Name"
+              data-bind="value: name"
+            />
+          </td>
+          <td>
+            <select
+              name="passanger_meal"
+              data-bind="options: $root.meals, optionsText: 'name', value: meal"
+            ></select>
+          </td>
+          <td data-bind="text: mealPriceFormatted"></td>
+          <td>
+            <button
+              title="cancel seat"
+              data-bind="click: $root.cancelSeat, enable: $root.seats().length > 1"
+            >
+              x
+            </button>
+          </td>
+        </tr>
+      </tbody>
+      <tfoot data-bind="visible: totalSurcharge() !== '$0'">
+        <tr>
+          <td colspan="2"><b>Total Surcharge</b></td>
+          <td data-bind="text: totalSurcharge"></td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <button
+      data-bind="click: reserveSeat, enable: seats().length < 5"
+      style="margin-top: 16px"
+    >
+      Reserve Seat
+    </button>
+
+    <script src="/assets/knockout-3.5.1.js"></script>
+    <script type="text/javascript">
+      // model
+      function Seat(name = "", meal = {}) {
+        var self = this;
+
+        self.name = name;
+        self.meal = ko.observable(meal);
+
+        self.mealPriceFormatted = ko.computed(function () {
+          const price = self.meal().price ?? 0;
+          return `$${price}`;
+        });
+      }
+
+      function ReservationViewModel() {
+        var self = this;
+
+        self.meals = [
+          { name: "Standart (sandwich)", price: 0 },
+          { name: "Premium (lobster)", price: 34.95 },
+          { name: "Ultimate (whole zebra)", price: 290 },
+        ];
+
+        self.seats = ko.observableArray([new Seat("", self.meals[0])]);
+
+        self.totalSurcharge = ko.computed(function () {
+          const total = self.seats().reduce(function (total, seat) {
+            return (total += seat.meal().price);
+          }, 0);
+
+          return `$${total}`;
+        });
+
+        self.reserveSeat = function () {
+          self.seats.push(new Seat("", self.meals[0]));
+        };
+
+        self.cancelSeat = function (seat) {
+          if (self.seats().length === 1) return;
+
+          self.seats.remove(seat);
+        };
+      }
+
+      ko.applyBindings(new ReservationViewModel());
+    </script>
+  </body>
+</html>
