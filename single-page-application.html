@@ -13,7 +13,7 @@
       ></li>
     </ul>
 
-    <main data-bind="with: folderSelectedData">
+    <section data-bind="with: folderSelectedData, visible: !mailSelected()">
       <h1 data-bind="text: `${id} (${mails.length})`"></h1>
 
       <!-- Mails grid -->
@@ -27,7 +27,7 @@
           </tr>
         </thead>
         <tbody data-bind="foreach: mails">
-          <tr>
+          <tr data-bind="click: $root.goToMail">
             <td data-bind="text: from"></td>
             <td data-bind="text: to"></td>
             <td data-bind="text: subject"></td>
@@ -35,7 +35,34 @@
           </tr>
         </tbody>
       </table>
-    </main>
+    </section>
+
+    <!-- Selected Mail -->
+    <section
+      class="viewMail"
+      data-bind="with: mailSelected, visible: mailSelected()"
+    >
+      <div style="margin: 19.92px 0">
+        <a
+          href="#"
+          data-bind="click: $root.clearMailSelected"
+          style="font-size: 24px"
+        >
+          Back to Mail List
+        </a>
+      </div>
+
+      <div class="mailInfo">
+        <h1 data-bind="text: subject"></h1>
+        <p>
+          <label for="from">From</label>: <span data-bind="text: from"></span>
+        </p>
+        <p><label for="to">To</label>: <span data-bind="text: to"></span></p>
+        <p><label>Date</label>: <span data-bind="text: date"></span></p>
+      </div>
+
+      <p class="message" data-bind="html: message"></p>
+    </section>
 
     <script src="/assets/knockout-3.5.1.js"></script>
     <script type="text/javascript">
@@ -47,8 +74,12 @@
         self.folderSelected = ko.observable();
         self.folderSelectedData = ko.observable();
 
+        self.mailSelected = ko.observable();
+
         self.goToFolder = function (folder) {
-          if (self.folderSelected() === folder) return;
+          if (self.folderSelected() === folder && !self.mailSelected()) return;
+
+          self.clearMailSelected();
 
           self.folderSelected(folder);
 
@@ -59,6 +90,22 @@
                 id: folder,
                 mails: data,
               });
+            });
+        };
+
+        self.clearMailSelected = function () {
+          if (self.mailSelected()) {
+            self.mailSelected(null);
+          }
+        };
+
+        self.goToMail = function (mail) {
+          fetch(
+            `https://658506d7022766bcb8c7c89d.mockapi.io/api/v1/mails/${mail.id}`
+          )
+            .then((response) => response.json())
+            .then(function (data) {
+              self.mailSelected(data);
             });
         };
 
