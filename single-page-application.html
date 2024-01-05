@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Single Page Application | Knockout JS Practice</title>
+    <link rel="stylesheet" href="/assets/css/single-page-application.css" />
+  </head>
+  <body>
+    <ul class="folders" data-bind="foreach: folders">
+      <li
+        data-bind="text: $data, css: { selected: $data == $root.folderSelected() }, click: $root.goToFolder"
+      ></li>
+    </ul>
+
+    <section data-bind="visible: isLoading()">
+      <p>loading...</p>
+    </section>
+
+    <section
+      data-bind="with: folderSelectedData, visible: !isLoading() && !mailSelected()"
+    >
+      <h1 data-bind="text: `${id} (${mails.length})`"></h1>
+
+      <!-- Mails grid -->
+      <table class="mails">
+        <thead>
+          <tr>
+            <th>From</th>
+            <th>To</th>
+            <th>Subject</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody data-bind="foreach: mails">
+          <tr data-bind="click: $root.goToMail">
+            <td data-bind="text: from"></td>
+            <td data-bind="text: to"></td>
+            <td data-bind="text: subject"></td>
+            <td data-bind="text: date"></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Selected Mail -->
+    <section
+      class="viewMail"
+      data-bind="with: mailSelected, visible: !isLoading() && mailSelected()"
+    >
+      <div style="margin: 19.92px 0">
+        <a
+          href="#"
+          data-bind="click: $root.clearMailSelected"
+          style="font-size: 24px"
+        >
+          Back to Mail List
+        </a>
+      </div>
+
+      <div class="mailInfo">
+        <h1 data-bind="text: subject"></h1>
+        <p>
+          <label for="from">From</label>: <span data-bind="text: from"></span>
+        </p>
+        <p><label for="to">To</label>: <span data-bind="text: to"></span></p>
+        <p><label>Date</label>: <span data-bind="text: date"></span></p>
+      </div>
+
+      <p class="message" data-bind="html: message"></p>
+    </section>
+
+    <script src="/assets/jquery-1.7.1.min.js"></script>
+    <script src="/assets/sammy.js"></script>
+    <script src="/assets/knockout-3.5.1.js"></script>
+    <script type="text/javascript">
+      function WebmailViewModel() {
+        var self = this;
+
+        self.folders = ["Inbox", "Archive", "Sent", "Spam"];
+
+        self.folderSelected = ko.observable();
+        self.folderSelectedData = ko.observable();
+
+        self.mailSelected = ko.observable();
+
+        self.isLoading = ko.observable(false);
+
+        self.goToFolder = function (folder) {
+          location.hash = folder;
+        };
+
+        self.loadFolderData = function (folder) {
+          if (self.folderSelected() === folder && !self.mailSelected()) return;
+
+          self.clearMailSelected();
+
+          self.folderSelected(folder);
+
+          self.isLoading(true);
+
+          fetch("https://658506d7022766bcb8c7c89d.mockapi.io/api/v1/mails")
+            .then((response) => response.json())
+            .then(function (data) {
+              self.folderSelectedData({
+                id: folder,
+                mails: data,
+              });
+            })
+            .finally(function () {
+              self.isLoading(false);
+            });
+        };
+
+        self.goToMail = function (mail) {
+          location.hash = self.folderSelected() + "/" + mail.id;
+        };
+
+        self.loadMailData = function (mailId) {
+          self.isLoading(true);
+
+          fetch(
+            `https://658506d7022766bcb8c7c89d.mockapi.io/api/v1/mails/${mailId}`
+          )
+            .then((response) => response.json())
+            .then(function (data) {
+              self.mailSelected(data);
+            })
+            .finally(function () {
+              self.isLoading(false);
+            });
+        };
+
+        self.clearMailSelected = function () {
+          if (self.mailSelected()) {
+            self.mailSelected(null);
+          }
+        };
+
+        // client side routes
+        Sammy(function () {
+          this.get("#:folder", function () {
+            self.loadFolderData(this.params.folder);
+          });
+
+          this.get("#:folder/:mailId", function () {
+            if (self.folderSelected() !== this.params.folder) {
+              self.folderSelected(this.params.folder);
+            }
+
+            self.loadMailData(this.params.mailId);
+          });
+
+          this.get("", function () {
+            this.app.runRoute("get", "#Inbox");
+          });
+        }).run();
+      }
+
+      ko.applyBindings(new WebmailViewModel());
+    </script>
+  </body>
+</html>
