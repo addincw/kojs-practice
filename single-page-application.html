@@ -64,6 +64,8 @@
       <p class="message" data-bind="html: message"></p>
     </section>
 
+    <script src="/assets/jquery-1.7.1.min.js"></script>
+    <script src="/assets/sammy.js"></script>
     <script src="/assets/knockout-3.5.1.js"></script>
     <script type="text/javascript">
       function WebmailViewModel() {
@@ -77,7 +79,17 @@
         self.mailSelected = ko.observable();
 
         self.goToFolder = function (folder) {
-          if (self.folderSelected() === folder && !self.mailSelected()) return;
+          location.hash = folder;
+        };
+
+        self.loadFolderData = function (folder) {
+          if (
+            self.folderSelected() === folder &&
+            self.folderSelectedData()?.id === folder &&
+            !self.mailSelected()
+          ) {
+            return;
+          }
 
           self.clearMailSelected();
 
@@ -93,21 +105,40 @@
             });
         };
 
-        self.clearMailSelected = function () {
-          if (self.mailSelected()) {
-            self.mailSelected(null);
-          }
+        self.goToMail = function (mail) {
+          location.hash = self.folderSelected() + "/" + mail.id;
         };
 
-        self.goToMail = function (mail) {
+        self.loadMailData = function (mailId) {
           fetch(
-            `https://658506d7022766bcb8c7c89d.mockapi.io/api/v1/mails/${mail.id}`
+            `https://658506d7022766bcb8c7c89d.mockapi.io/api/v1/mails/${mailId}`
           )
             .then((response) => response.json())
             .then(function (data) {
               self.mailSelected(data);
             });
         };
+
+        self.clearMailSelected = function () {
+          if (self.mailSelected()) {
+            self.mailSelected(null);
+          }
+        };
+
+        // client side routes
+        Sammy(function () {
+          this.get("#:folder", function () {
+            self.loadFolderData(this.params.folder);
+          });
+
+          this.get("#:folder/:mailId", function () {
+            if (self.folderSelected() !== this.params.folder) {
+              self.folderSelected(this.params.folder);
+            }
+
+            self.loadMailData(this.params.mailId);
+          });
+        }).run();
 
         self.goToFolder("Inbox");
       }
