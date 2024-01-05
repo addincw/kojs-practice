@@ -13,7 +13,13 @@
       ></li>
     </ul>
 
-    <section data-bind="with: folderSelectedData, visible: !mailSelected()">
+    <section data-bind="visible: isLoading()">
+      <p>loading...</p>
+    </section>
+
+    <section
+      data-bind="with: folderSelectedData, visible: !isLoading() && !mailSelected()"
+    >
       <h1 data-bind="text: `${id} (${mails.length})`"></h1>
 
       <!-- Mails grid -->
@@ -40,7 +46,7 @@
     <!-- Selected Mail -->
     <section
       class="viewMail"
-      data-bind="with: mailSelected, visible: mailSelected()"
+      data-bind="with: mailSelected, visible: !isLoading() && mailSelected()"
     >
       <div style="margin: 19.92px 0">
         <a
@@ -78,22 +84,20 @@
 
         self.mailSelected = ko.observable();
 
+        self.isLoading = ko.observable(false);
+
         self.goToFolder = function (folder) {
           location.hash = folder;
         };
 
         self.loadFolderData = function (folder) {
-          if (
-            self.folderSelected() === folder &&
-            self.folderSelectedData()?.id === folder &&
-            !self.mailSelected()
-          ) {
-            return;
-          }
+          if (self.folderSelected() === folder && !self.mailSelected()) return;
 
           self.clearMailSelected();
 
           self.folderSelected(folder);
+
+          self.isLoading(true);
 
           fetch("https://658506d7022766bcb8c7c89d.mockapi.io/api/v1/mails")
             .then((response) => response.json())
@@ -102,6 +106,9 @@
                 id: folder,
                 mails: data,
               });
+            })
+            .finally(function () {
+              self.isLoading(false);
             });
         };
 
@@ -110,12 +117,17 @@
         };
 
         self.loadMailData = function (mailId) {
+          self.isLoading(true);
+
           fetch(
             `https://658506d7022766bcb8c7c89d.mockapi.io/api/v1/mails/${mailId}`
           )
             .then((response) => response.json())
             .then(function (data) {
               self.mailSelected(data);
+            })
+            .finally(function () {
+              self.isLoading(false);
             });
         };
 
@@ -138,9 +150,11 @@
 
             self.loadMailData(this.params.mailId);
           });
-        }).run();
 
-        self.goToFolder("Inbox");
+          this.get("", function () {
+            this.app.runRoute("get", "#Inbox");
+          });
+        }).run();
       }
 
       ko.applyBindings(new WebmailViewModel());
